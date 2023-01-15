@@ -1,79 +1,56 @@
 import Notiflix from 'notiflix';
-import { inputName } from './index';
+import {
+  inputSearch,
+  DEFAULT_URL,
+  countryInfo,
+  countryList,
+  createMarkupOneCountry,
+  createMarkupFewCountries,
+} from './index';
 
-const insertBox = document.querySelector('.country-list');
-function callFetch() {
-  if (inputName === '') {
-    removeAllChildNodes(insertBox);
+export function fetchCountries(name) {
+  if (
+    inputSearch.value === ' ' ||
+    inputSearch.value === '  ' ||
+    inputSearch.value === '   '
+  ) {
+    inputSearch.value = '';
     return;
   }
-  fetch(
-    `https://restcountries.com/v2/name/${inputName}?fields=name,flag,capital,population,languages `
-  )
-    .then(responce => {
-      console.log(responce);
-      if (!responce.ok) {
-        throw new Error();
-      }
-      return responce.json();
-    })
-    .then(countries => {
-      console.log(countries);
-      createCountries(countries);
-    })
-    .catch(onFetcherror);
-}
-
-function createCountries(countries) {
-  let markUp = '';
-
-  if (countries.length === undefined) {
-    markUp = '';
-  } else if (countries.length === 1) {
-    markUp = countries
-      .map(({ name, flag, capital, population, languages }) => {
-        // console.log(languages);
-        const languagesName = Object.values(languages);
-        let lang = '';
-        languagesName.forEach(language => {
-          lang += language.name;
-        });
-        // console.log(languagesName);
-        return `<li class='item'>
-  <img class="gallery__image" src="${flag} " alt="${name}" width='300' hight='200'/>
-  <p>Name: ${name} </p>
-  <p>Capital: ${capital} </p>
-  <p>Population: ${population} </p>
-    <p>Langueges: ${lang} </p>
-    </li>`;
-      })
-      .join('');
-  } else if (countries.length > 10) {
-    Notiflix.Notify.info(
-      'Too many matches found. Please enter a more specific name.'
+  if (inputSearch.value !== '') {
+    const input = inputSearch.value;
+    const inputTrim = input.trim();
+    const resp = fetch(
+      `${DEFAULT_URL}/${inputTrim}?fields=name,capital,population,flags,languages`
     );
-  } else {
-    markUp = countries
-      .map(({ name, flag }) => {
-        return `<li class='item'>
-  <img class="gallery__image" src="${flag}" alt="${name}" width='60' hight='40'/>
-  <p>${name} </p>
-  </li>`;
+
+    resp
+      .then(responce => {
+        if (!responce.ok) {
+          throw new Error();
+        }
+        return responce.json();
       })
-      .join('');
-    //    console.log(inputName);
+      .then(data => {
+        if (data.length > 10) {
+          Notiflix.Notify.failure(
+            `Too many matches found. Please enter a more specific name.`
+          );
+        }
+        if (data.length >= 2 && data.length <= 10) {
+          const markupCountries = createMarkupFewCountries(data);
+          countryList.innerHTML = markupCountries;
+        }
+        if (data.length === 1) {
+          const markupCountry = createMarkupOneCountry(data);
+          countryInfo.innerHTML = markupCountry;
+        }
+      })
+      .catch(err =>
+        Notiflix.Notify.failure(`Oops, there is no country with that name.`)
+      );
   }
-  insertBox.innerHTML = markUp;
+  countryList.innerHTML = '';
+  countryInfo.innerHTML = '';
+  return;
 }
-
-function onFetcherror(error) {
-  Notiflix.Notify.failure('Oops, there is no country with that name');
-}
-
-function removeAllChildNodes(insertBox) {
-  while (insertBox.firstChild) {
-    insertBox.removeChild(insertBox.firstChild);
-  }
-}
-
-export { callFetch };
