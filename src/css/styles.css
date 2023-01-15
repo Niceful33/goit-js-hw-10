@@ -17,4 +17,27 @@ body {
   padding: 8px;
   max-width: 320px;
   margin-bottom: 16px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.title {
+  display: flex;
+  justify-content: center;
+  text-transform: uppercase;
+}
+
+.item {
+  list-style: none;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.country-list {
+  display: grid;
+  max-width: 1140px;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: minmax(auto, auto);
+  grid-gap: 12px;
+  justify-content: center;
 }
