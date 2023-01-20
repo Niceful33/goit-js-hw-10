@@ -19,7 +19,35 @@ body {
   margin-bottom: 16px;
 }
 
-.item,
+.country-items {
+  list-style: none;
+}
+
+.country-img {
+  margin-right: 5px;
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.country-info-title {
+  font-size: 40;
+  display: flex;
+}
+
+span {
+  font-size: 20;
+  font-weight: lighter;
+}
+
+p {
+  font-weight: bold;
+  font-size: 20;
+}
+/* .item,
 .item-country {
   display: flex;
   align-items: center;
@@ -52,4 +80,4 @@ ul {
 
 h2 {
   margin: 0;
-}
+} */

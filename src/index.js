@@ -1,46 +1,76 @@
 import './css/styles.css';
-import { fetchCountries } from './fetchCountries';
+import debounce from 'lodash.debounce';
+import FetchApiService from './fetchCountries';
+import Notiflix from 'notiflix';
 
-const debounce = require('lodash.debounce');
+const fetchApiService = new FetchApiService();
+
 const DEBOUNCE_DELAY = 300;
-export const DEFAULT_URL = 'https://restcountries.com/v3.1/name';
-export const inputSearch = document.querySelector('#search-box');
-export const countryList = document.querySelector('.country-list');
-export const countryInfo = document.querySelector('.country-info');
 
-inputSearch.addEventListener('input', debounce(fetchCountries, DEBOUNCE_DELAY));
-export function createMarkupOneCountry(arr) {
-  return arr
-    .map(
-      item =>
-        `<div class='item-country'><img class='img' src="${
-          item.flags.svg
-        }" alt="flag" width=60 height=50>
-        <h2 class='title'> ${item.name.official}</h2></div>
-        
-        <p><span>Capital:</span> ${item.capital}</p>
-        <p><span>Population:</span> ${item.population}</p>
-        <p><span>Languages:</span> ${Object.values(item.languages).join(
-          ', '
-        )}</p>
-    <p><img src="https://www.svgrepo.com/show/306970/wikipedia.svg" alt="Wikipedia" width=30> <a href="https://uk.wikipedia.org/wiki/${
-      item.name.official
-    } " target="_blank">Link to Wikipedia</a></p>
-       <p><img src="https://www.svgrepo.com/show/353819/google-maps.svg" alt="Google maps" width=30><a href="https://www.google.com.ua/maps/place/${
-         item.name.official
-       }"target="_blank">Link to Google maps</a></p>`
-    )
+const searchCountry = document.querySelector('#search-box');
+const allCountries = document.querySelector('.country-list');
+const infoCountry = document.querySelector('.country-info');
+
+searchCountry.addEventListener(
+  'input',
+  debounce(onInputSearch, DEBOUNCE_DELAY)
+);
+
+function markupAllCountries(data) {
+  return data
+    .map(country => {
+      return `<li class="country-items">
+  <img class="country-img" src="${country.flags.svg}" alt="Flag" width = 20, height = 15></img>
+  ${country.name.official}</li>`;
+    })
     .join('');
 }
 
-export function createMarkupFewCountries(arr) {
-  return arr
-    .map(
-      item =>
-        `<li class='item'>
-        <img class='img' src="${item.flags.svg}" alt="flag" width=40 height=30>
-        <h2> ${item.name.official}</h2>
-        </li>`
-    )
+function markupOneCountry(data) {
+  return data
+    .map(country => {
+      return `<img src="${
+        country.flags.svg
+      }" alt="Flag" width="70" height="65"></img>
+                <h2 class="country-info-title">${country.name.official}</h2>
+            <p>Capital: <span>${country.capital}</span></p>
+            <p>Population: <span>${country.population}</span></p>
+            <p>Languages: <span>${Object.values(country.languages)}</span></p>`;
+    })
     .join('');
+}
+
+function renderMarkup(data) {
+  clearPage();
+  if (data.length === 1) {
+    allCountries.insertAdjacentHTML('beforeend', markupOneCountry(data));
+  } else if (data.length > 1 && data.length <= 10) {
+    infoCountry.insertAdjacentHTML('beforeend', markupAllCountries(data));
+  } else if (data.length > 10) {
+    Notiflix.Notify.failure(
+      'Too many matches found. Please enter a more specific name.'
+    );
+  }
+}
+
+function onInputSearch(e) {
+  e.preventDefault();
+  if (e.target.value.trim() === '') {
+    clearPage();
+    return;
+  }
+  fetchApiService.searchCountry = e.target.value.trim();
+  fetchApiService
+    .fetchCountries()
+    .then(data => renderMarkup(data))
+    .catch(onError);
+}
+
+const onError = () => {
+  Notiflix.Notify.failure('Oops, there is no country with that name');
+};
+
+function clearPage() {
+  allCountries.innerHTML = '';
+  infoCountry.innerHTML = '';
 }
