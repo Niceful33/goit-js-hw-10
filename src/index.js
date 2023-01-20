@@ -47,6 +47,7 @@ function renderMarkup(data) {
   } else if (data.length > 1 && data.length <= 10) {
     infoCountry.insertAdjacentHTML('beforeend', markupAllCountries(data));
   } else if (data.length > 10) {
+    clearPage();
     Notiflix.Notify.failure(
       'Too many matches found. Please enter a more specific name.'
     );
@@ -67,6 +68,7 @@ function onInputSearch(e) {
 }
 
 const onError = () => {
+  clearPage();
   Notiflix.Notify.failure('Oops, there is no country with that name');
 };
 
